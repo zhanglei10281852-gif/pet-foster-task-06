@@ -357,15 +357,8 @@ func decode(r *http.Request, target any) error {
 	if err := decoder.Decode(target); err != nil {
 		return fmt.Errorf("%w: invalid JSON", ErrValidation)
 	}
-	for {
-		var ignored json.RawMessage
-		err := decoder.Decode(&ignored)
-		if errors.Is(err, io.EOF) {
-			break
-		}
-		if err != nil {
-			return fmt.Errorf("%w: invalid trailing JSON", ErrValidation)
-		}
+	if err := decoder.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
+		return fmt.Errorf("%w: request body must contain one JSON value", ErrValidation)
 	}
 	return nil
 }
